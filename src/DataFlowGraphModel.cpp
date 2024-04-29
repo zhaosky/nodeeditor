@@ -93,6 +93,20 @@ NodeId DataFlowGraphModel::addNode(QString const nodeType)
                 this,
                 &DataFlowGraphModel::portsInserted);
 
+        connect(model.get(),
+                &NodeDelegateModel::computingStarted,
+                this, 
+                [newId, this]() {
+                    Q_EMIT computingStarted(newId);
+                });
+
+        connect(model.get(),
+                &NodeDelegateModel::computeFinished,
+                this,
+                [newId, this](int err, const QString &strResult) {
+                    Q_EMIT computingFinished(newId, err, strResult);
+                });
+
         _models[newId] = std::move(model);
 
         Q_EMIT nodeCreated(newId);
@@ -471,6 +485,17 @@ void DataFlowGraphModel::loadNode(QJsonObject const &nodeJson)
                 &NodeDelegateModel::dataUpdated,
                 [restoredNodeId, this](PortIndex const portIndex) {
                     onOutPortDataUpdated(restoredNodeId, portIndex);
+                });
+
+        connect(model.get(), &NodeDelegateModel::computingStarted, this, [restoredNodeId, this]() {
+            Q_EMIT computingStarted(restoredNodeId);
+        });
+
+        connect(model.get(),
+                &NodeDelegateModel::computeFinished,
+                this,
+                [restoredNodeId, this](int err, const QString &strResult) {
+                    Q_EMIT computingFinished(restoredNodeId, err, strResult);
                 });
 
         _models[restoredNodeId] = std::move(model);

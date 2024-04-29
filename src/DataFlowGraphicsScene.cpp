@@ -144,6 +144,11 @@ QMenu *DataFlowGraphicsScene::createSceneMenu(QPointF const scenePos)
     return modelMenu;
 }
 
+void DataFlowGraphicsScene::createNewNodeObject(const QString &strText, QPointF const scenePos)
+{
+    undoStack().push(new CreateCommand(this, strText, scenePos));
+}
+
 bool DataFlowGraphicsScene::save() const
 {
     QString fileName = QFileDialog::getSaveFileName(nullptr,
@@ -162,6 +167,11 @@ bool DataFlowGraphicsScene::save() const
         }
     }
     return false;
+}
+
+QString DataFlowGraphicsScene::getSaveMsg() const
+{
+    return QString::fromLatin1(QJsonDocument(_graphModel.save()).toJson());
 }
 
 bool DataFlowGraphicsScene::load()
@@ -186,6 +196,20 @@ bool DataFlowGraphicsScene::load()
     _graphModel.load(QJsonDocument::fromJson(wholeFile).object());
 
     Q_EMIT sceneLoaded();
+
+    return true;
+}
+
+bool DataFlowGraphicsScene::loadMsgFromString(const QString &strCfg)
+{
+    if (strCfg.isEmpty())
+        return false;
+
+    clearScene();
+
+    _graphModel.load(QJsonDocument::fromJson(strCfg.toLatin1()).object());
+
+     Q_EMIT sceneLoaded();
 
     return true;
 }

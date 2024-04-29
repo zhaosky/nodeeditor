@@ -96,6 +96,9 @@ public:
 
 Q_SIGNALS:
     void inPortDataWasSet(NodeId const, PortType const, PortIndex const);
+    //compute export
+    void computingStarted(NodeId const);
+    void computingFinished(NodeId const nodeId,int nErr, const QString &strResult);
 
 private:
     NodeId newNodeId() override { return _nextNodeId++; }

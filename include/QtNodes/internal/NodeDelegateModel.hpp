@@ -101,6 +101,8 @@ Q_SIGNALS:
     void computingStarted();
 
     void computingFinished();
+    //has param signal
+    void computeFinished(int err, const QString &strResult);
 
     void embeddedWidgetSizeUpdated();
 

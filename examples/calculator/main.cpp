@@ -90,6 +90,7 @@ int main(int argc, char *argv[])
 
     l->addWidget(menuBar);
     auto scene = new DataFlowGraphicsScene(dataFlowGraphModel, &mainWidget);
+    scene->setOrientation(Qt::Vertical);
 
     auto view = new GraphicsView(scene);
     l->addWidget(view);

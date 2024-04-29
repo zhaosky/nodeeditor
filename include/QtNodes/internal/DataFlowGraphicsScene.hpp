@@ -18,6 +18,11 @@ public:
     DataFlowGraphicsScene(DataFlowGraphModel &graphModel, QObject *parent = nullptr);
 
     ~DataFlowGraphicsScene() = default;
+    //create node as a export
+    void createNewNodeObject(const QString &strText, QPointF const scenePos);
+    
+    QString getSaveMsg() const;
+    bool loadMsgFromString(const QString &strCfg);
 
 public:
     std::vector<NodeId> selectedNodes() const;
