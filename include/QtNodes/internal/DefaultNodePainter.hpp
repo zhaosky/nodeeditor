@@ -19,6 +19,8 @@ class NODE_EDITOR_PUBLIC DefaultNodePainter : public AbstractNodePainter
 public:
     void paint(QPainter *painter, NodeGraphicsObject &ngo) const override;
 
+    void drawCaptionRect(QPainter *painter, NodeGraphicsObject &ngo) const;
+    
     void drawNodeRect(QPainter *painter, NodeGraphicsObject &ngo) const;
 
     void drawConnectionPoints(QPainter *painter, NodeGraphicsObject &ngo) const;

@@ -33,7 +33,9 @@ public:
     bool captionVisible() const override { return false; }
 
     QString name() const override { return QStringLiteral("NumberSource"); }
-
+    QString descriptions()const override {return QStringLiteral("NumberSource");};
+    
+    QString icon()override {return "";};
 public:
     QJsonObject save() const override;
 

@@ -20,6 +20,10 @@ public:
 
     QString name() const override { return QStringLiteral("Addition"); }
 
+    QString descriptions()const override {return QStringLiteral("Addition");};
+    
+    QString icon()override {return "";};
+
 private:
     void compute() override
     {

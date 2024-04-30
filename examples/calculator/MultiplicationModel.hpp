@@ -20,6 +20,16 @@ public:
     QString caption() const override { return QStringLiteral("Multiplication"); }
 
     QString name() const override { return QStringLiteral("Multiplication"); }
+    QString descriptions()const override {return QStringLiteral("Multiplication");};
+    
+    QString icon()override {return "";};
+
+     bool portCaptionVisible(PortType portType, PortIndex portIndex) const override
+    {
+        Q_UNUSED(portType);
+        Q_UNUSED(portIndex);
+        return true;
+    }
 
 private:
     void compute() override

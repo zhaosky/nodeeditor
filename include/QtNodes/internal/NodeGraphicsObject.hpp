@@ -5,6 +5,9 @@
 
 #include "NodeState.hpp"
 
+#define DEFAULT_NODE_HIGH_BEGIN 20
+#define NODE_CAPTION_HIGH 36
+
 class QGraphicsProxyWidget;
 
 namespace QtNodes {

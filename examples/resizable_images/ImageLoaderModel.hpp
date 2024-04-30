@@ -31,7 +31,9 @@ public:
     QString caption() const override { return QString("Image Source"); }
 
     QString name() const override { return QString("ImageLoaderModel"); }
-
+    QString descriptions()const override {return QStringLiteral("ImageLoaderModel");};
+    
+    QString icon()override{return "";};
 public:
     virtual QString modelName() const { return QString("Source Image"); }
 

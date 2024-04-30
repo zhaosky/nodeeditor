@@ -35,7 +35,9 @@ public:
     QString caption() const override { return QString("My Data Model"); }
 
     QString name() const override { return QString("MyDataModel"); }
-
+    QString descriptions()const override {return QStringLiteral("MyDataModel");};
+    
+    QString icon()override{return "";};
 public:
     QJsonObject save() const override
     {

@@ -33,6 +33,9 @@ public:
     bool captionVisible() const override { return false; }
 
     QString name() const override { return QStringLiteral("Result"); }
+    QString descriptions()const override {return QStringLiteral("Result");};
+    
+    QString icon()override {return "";};
 
 public:
     unsigned int nPorts(PortType portType) const override;

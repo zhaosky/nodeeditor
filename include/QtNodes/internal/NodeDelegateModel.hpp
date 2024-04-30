@@ -44,6 +44,12 @@ public:
     /// Name makes this model unique
     virtual QString name() const = 0;
 
+    virtual QString descriptions() const = 0;
+
+    virtual QString icon() = 0;
+
+    virtual NodeResultType getResult() const { return ResultType_NONE; }
+
 public:
     QJsonObject save() const override;
 

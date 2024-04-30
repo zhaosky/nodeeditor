@@ -17,6 +17,9 @@ public:
 
 public:
     QString caption() const override { return QStringLiteral("Division"); }
+    QString descriptions()const override {return QStringLiteral("Division");};
+    
+    QString icon()override{return "";};
 
     bool portCaptionVisible(PortType portType, PortIndex portIndex) const override
     {

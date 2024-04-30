@@ -32,6 +32,8 @@ Q_NAMESPACE_EXPORT(NODE_EDITOR_PUBLIC)
         InPortCount = 7,    ///< `unsigned int`
         OutPortCount = 9,   ///< `unsigned int`
         Widget = 10,        ///< Optional `QWidget*` or `nullptr`
+        Time = 11,          //'int' fornode exec time
+        ResultValue = 12,   //Type of Result
     };
 Q_ENUM_NS(NodeRole)
 
@@ -48,6 +50,14 @@ Q_DECLARE_FLAGS(NodeFlags, NodeFlag)
 Q_FLAG_NS(NodeFlags)
 Q_DECLARE_OPERATORS_FOR_FLAGS(NodeFlags)
 
+//node result type
+enum NodeResultType {
+    ResultType_NONE,        //no result ,show none
+    ResultType_SUCCEED,     //succeed result ,show image success
+    ResultType_FAILED,      //failed result ,show image failed
+    ResultType_UNREACHABLE, //unreachable result ,show image unreachable
+};
+Q_ENUM_NS(NodeResultType)
 /**
  * Constants for fetching port-related information from the GraphModel.
  */

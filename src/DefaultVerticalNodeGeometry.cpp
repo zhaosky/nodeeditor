@@ -7,6 +7,10 @@
 #include <QRect>
 #include <QWidget>
 
+#define DEFAULT_NODE_WIDTH 198
+#define DEFAULT_NODE_HIGH  144
+#define DEFAULT_NODE_HIGH_BEGIN  20
+
 namespace QtNodes {
 
 DefaultVerticalNodeGeometry::DefaultVerticalNodeGeometry(AbstractGraphModel &graphModel)
@@ -73,6 +77,10 @@ void DefaultVerticalNodeGeometry::recomputeSize(NodeId const nodeId) const
     width += _portSpasing;
     width += _portSpasing;
 
+    width = (width > DEFAULT_NODE_WIDTH) ? width : DEFAULT_NODE_WIDTH;
+    height = (height > DEFAULT_NODE_HIGH) ? height : DEFAULT_NODE_HIGH;
+
+
     QSize size(width, height);
 
     _graphModel.setNodeData(nodeId, NodeRole::Size, size);
@@ -94,7 +102,7 @@ QPointF DefaultVerticalNodeGeometry::portPosition(NodeId const nodeId,
 
         double x = (size.width() - (nInPorts - 1) * inPortWidth) / 2.0 + portIndex * inPortWidth;
 
-        double y = 0.0;
+        double y = 0.0 + DEFAULT_NODE_HIGH_BEGIN;
 
         result = QPointF(x, y);
 
@@ -135,7 +143,7 @@ QPointF DefaultVerticalNodeGeometry::portTextPosition(NodeId const nodeId,
 
     switch (portType) {
     case PortType::In:
-        p.setY(5.0 + rect.height());
+        p.setY(5.0+ DEFAULT_NODE_HIGH_BEGIN + rect.height());
         break;
 
     case PortType::Out:
@@ -164,7 +172,7 @@ QPointF DefaultVerticalNodeGeometry::captionPosition(NodeId const nodeId) const
     QSize size = _graphModel.nodeData<QSize>(nodeId, NodeRole::Size);
 
     unsigned int step = portCaptionsHeight(nodeId, PortType::In);
-    step += _portSpasing;
+    step += _portSpasing + DEFAULT_NODE_HIGH_BEGIN;
 
     auto rect = captionRect(nodeId);
 
@@ -265,7 +273,7 @@ unsigned int DefaultVerticalNodeGeometry::maxPortsTextAdvance(NodeId const nodeI
 unsigned int DefaultVerticalNodeGeometry::portCaptionsHeight(NodeId const nodeId,
                                                              PortType const portType) const
 {
-    unsigned int h = 0;
+    unsigned int h = DEFAULT_NODE_HIGH_BEGIN;
 
     switch (portType) {
     case PortType::In: {

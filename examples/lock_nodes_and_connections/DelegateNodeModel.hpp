@@ -29,7 +29,9 @@ public:
     QString caption() const override { return QString("Simple Data Model"); }
 
     QString name() const override { return QString("SimpleDataModel"); }
-
+    QString descriptions()const override {return QStringLiteral("SimpleDataModel");};
+    
+    QString icon()override{return "";};
 public:
     unsigned int nPorts(PortType const portType) const override { return 2; }
 

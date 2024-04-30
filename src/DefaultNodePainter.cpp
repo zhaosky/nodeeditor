@@ -23,6 +23,8 @@ void DefaultNodePainter::paint(QPainter *painter, NodeGraphicsObject &ngo) const
 
     drawNodeRect(painter, ngo);
 
+    drawCaptionRect(painter,ngo);
+
     drawConnectionPoints(painter, ngo);
 
     drawFilledConnectionPoints(painter, ngo);
@@ -32,6 +34,17 @@ void DefaultNodePainter::paint(QPainter *painter, NodeGraphicsObject &ngo) const
     drawEntryLabels(painter, ngo);
 
     drawResizeRect(painter, ngo);
+}
+
+void DefaultNodePainter::drawCaptionRect(QPainter *painter, NodeGraphicsObject &ngo) const 
+{
+    AbstractNodeGeometry &geometry = ngo.nodeScene()->nodeGeometry();
+
+    QSize size = geometry.size(ngo.nodeId());
+
+    QRect captionRect(0,DEFAULT_NODE_HIGH_BEGIN,size.width(),NODE_CAPTION_HIGH);
+    painter->fillRect(captionRect,QBrush(QColor("#253749")));
+
 }
 
 void DefaultNodePainter::drawNodeRect(QPainter *painter, NodeGraphicsObject &ngo) const
@@ -67,7 +80,7 @@ void DefaultNodePainter::drawNodeRect(QPainter *painter, NodeGraphicsObject &ngo
 
     painter->setBrush(gradient);
 
-    QRectF boundary(0, 0, size.width(), size.height());
+    QRectF boundary(0, DEFAULT_NODE_HIGH_BEGIN, size.width(), size.height()- DEFAULT_NODE_HIGH_BEGIN);
 
     double const radius = 3.0;
 
