@@ -7,5 +7,6 @@
         <file>imgs/tip_error.png</file>
         <file>imgs/tip_failed.png</file>
         <file>imgs/tip_success.png</file>
+        <file>imgs/movel.png</file>
     </qresource>
 </RCC>

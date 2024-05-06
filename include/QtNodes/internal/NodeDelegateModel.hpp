@@ -50,6 +50,8 @@ public:
 
     virtual NodeResultType getResult() const { return ResultType_NONE; }
 
+    virtual int nodeComputeTime() const {return 0;};
+
 public:
     QJsonObject save() const override;
 

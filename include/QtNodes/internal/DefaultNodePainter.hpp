@@ -32,5 +32,13 @@ public:
     void drawEntryLabels(QPainter *painter, NodeGraphicsObject &ngo) const;
 
     void drawResizeRect(QPainter *painter, NodeGraphicsObject &ngo) const;
+
+    void drawShowTime(QPainter *painter, NodeGraphicsObject &ngo) const;
+
+    void drawNodeIcon(QPainter *painter, NodeGraphicsObject &ngo) const;
+
+    void drawOperationIcon(QPainter *painter, NodeGraphicsObject &ngo) const;
+    
+    void drawOperationResult(QPainter *painter, NodeGraphicsObject &ngo) const;
 };
 } // namespace QtNodes

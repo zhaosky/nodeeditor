@@ -34,6 +34,8 @@ Q_NAMESPACE_EXPORT(NODE_EDITOR_PUBLIC)
         Widget = 10,        ///< Optional `QWidget*` or `nullptr`
         Time = 11,          //'int' fornode exec time
         ResultValue = 12,   //Type of Result
+        Description = 13,   //‘QString’ for description
+        Icon = 14,          //‘QString’ for node icon path
     };
 Q_ENUM_NS(NodeRole)
 
@@ -57,7 +59,7 @@ enum NodeResultType {
     ResultType_FAILED,      //failed result ,show image failed
     ResultType_UNREACHABLE, //unreachable result ,show image unreachable
 };
-Q_ENUM_NS(NodeResultType)
+//Q_ENUM_NS(NodeResultType)
 /**
  * Constants for fetching port-related information from the GraphModel.
  */

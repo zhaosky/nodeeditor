@@ -7,6 +7,9 @@
 
 #define DEFAULT_NODE_HIGH_BEGIN 20
 #define NODE_CAPTION_HIGH 36
+#define BORDER_SPACE 16
+#define VERTICAL_BORDER_SPACE 7
+#define CAPTION_RECT_HIGH  16
 
 class QGraphicsProxyWidget;
 
@@ -52,6 +55,9 @@ public:
 
     /// Repaints the node once with reacting ports.
     void reactToConnection(ConnectionGraphicsObject const *cgo);
+
+    QRect GetStepOverRect();
+    QRect GetStepNextRect();
 
 protected:
     void paint(QPainter *painter,

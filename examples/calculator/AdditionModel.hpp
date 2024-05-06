@@ -20,9 +20,12 @@ public:
 
     QString name() const override { return QStringLiteral("Addition"); }
 
-    QString descriptions()const override {return QStringLiteral("Addition");};
+    QString descriptions()const override {return QStringLiteral("Addition Descriptions");};
     
-    QString icon()override {return "";};
+    QString icon()override {return ":/imgs/movel.png";};
+    int nodeComputeTime() const override {return 20;}
+
+    QtNodes::NodeResultType getResult() const override { return QtNodes::NodeResultType::ResultType_FAILED; }
 
 private:
     void compute() override

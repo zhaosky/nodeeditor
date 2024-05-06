@@ -31,7 +31,11 @@ void DefaultNodePainter::paint(QPainter *painter, NodeGraphicsObject &ngo) const
 
     drawNodeCaption(painter, ngo);
 
-    drawEntryLabels(painter, ngo);
+    drawShowTime(painter,ngo);
+    drawNodeIcon(painter,ngo);
+    drawOperationIcon(painter,ngo);
+    drawOperationResult(painter,ngo);
+    //drawEntryLabels(painter, ngo);
 
     drawResizeRect(painter, ngo);
 }
@@ -39,11 +43,22 @@ void DefaultNodePainter::paint(QPainter *painter, NodeGraphicsObject &ngo) const
 void DefaultNodePainter::drawCaptionRect(QPainter *painter, NodeGraphicsObject &ngo) const 
 {
     AbstractNodeGeometry &geometry = ngo.nodeScene()->nodeGeometry();
+    AbstractGraphModel &model = ngo.graphModel();
+    NodeId const nodeId = ngo.nodeId();
 
     QSize size = geometry.size(ngo.nodeId());
 
     QRect captionRect(0,DEFAULT_NODE_HIGH_BEGIN,size.width(),NODE_CAPTION_HIGH);
     painter->fillRect(captionRect,QBrush(QColor("#253749")));
+
+    QString strDesprition = model.nodeData(nodeId, NodeRole::Description).toString();
+    QRect descriptionRect(BORDER_SPACE,DEFAULT_NODE_HIGH_BEGIN+VERTICAL_BORDER_SPACE,100,NODE_CAPTION_HIGH-2*VERTICAL_BORDER_SPACE);
+    
+    painter->save();
+    painter->setPen(QColor(255,255,255,204));
+    painter->drawText(descriptionRect,Qt::AlignLeft | Qt::AlignVCenter,strDesprition);
+
+    painter->restore();
 
 }
 
@@ -150,7 +165,8 @@ void DefaultNodePainter::drawConnectionPoints(QPainter *painter, NodeGraphicsObj
                 painter->setBrush(nodeStyle.ConnectionPointColor);
             }
 
-            painter->drawEllipse(p, reducedDiameter * r, reducedDiameter * r);
+            // painter->drawEllipse(p, reducedDiameter * r, reducedDiameter * r);
+            painter->drawPixmap(p-QPoint(10,10),QPixmap(":/imgs/node_connect.png"));
         }
     }
 
@@ -207,7 +223,7 @@ void DefaultNodePainter::drawNodeCaption(QPainter *painter, NodeGraphicsObject &
 {
     AbstractGraphModel &model = ngo.graphModel();
     NodeId const nodeId = ngo.nodeId();
-    AbstractNodeGeometry &geometry = ngo.nodeScene()->nodeGeometry();
+    //AbstractNodeGeometry &geometry = ngo.nodeScene()->nodeGeometry();
 
     if (!model.nodeData(nodeId, NodeRole::CaptionVisible).toBool())
         return;
@@ -217,14 +233,14 @@ void DefaultNodePainter::drawNodeCaption(QPainter *painter, NodeGraphicsObject &
     QFont f = painter->font();
     f.setBold(true);
 
-    QPointF position = geometry.captionPosition(nodeId);
+    QRect captionRect(42,NODE_CAPTION_HIGH+ DEFAULT_NODE_HIGH_BEGIN+BORDER_SPACE,120,CAPTION_RECT_HIGH);//geometry.captionPosition(nodeId);
 
     QJsonDocument json = QJsonDocument::fromVariant(model.nodeData(nodeId, NodeRole::Style));
     NodeStyle nodeStyle(json.object());
 
     painter->setFont(f);
     painter->setPen(nodeStyle.FontColor);
-    painter->drawText(position, name);
+    painter->drawText(captionRect,Qt::AlignLeft| Qt::AlignVCenter, name);
 
     f.setBold(false);
     painter->setFont(f);
@@ -281,6 +297,77 @@ void DefaultNodePainter::drawResizeRect(QPainter *painter, NodeGraphicsObject &n
 
         painter->drawEllipse(geometry.resizeHandleRect(nodeId));
     }
+}
+//showNode exec Time
+void DefaultNodePainter::drawShowTime(QPainter *painter, NodeGraphicsObject &ngo) const 
+{
+    AbstractGraphModel &model = ngo.graphModel();
+    NodeId const nodeId = ngo.nodeId();
+
+    int nTime = model.nodeData(nodeId, NodeRole::Time).toInt();
+    if (nTime == 0)
+        return;
+
+    QString strTime = QString("time:%1ms").arg(nTime);
+    QRect timeRect(BORDER_SPACE,NODE_CAPTION_HIGH+ DEFAULT_NODE_HIGH_BEGIN+2*BORDER_SPACE + CAPTION_RECT_HIGH,100,BORDER_SPACE);
+
+    QJsonDocument json = QJsonDocument::fromVariant(model.nodeData(nodeId, NodeRole::Style));
+    NodeStyle nodeStyle(json.object());
+
+    painter->setPen(nodeStyle.FontColor);
+    painter->drawText(timeRect,Qt::AlignLeft| Qt::AlignVCenter, strTime);
+
+}
+
+void DefaultNodePainter::drawNodeIcon(QPainter *painter, NodeGraphicsObject &ngo) const 
+{
+    AbstractGraphModel &model = ngo.graphModel();
+    NodeId const nodeId = ngo.nodeId();
+
+    QString strIcon = model.nodeData(nodeId, NodeRole::Icon).toString();
+    if (strIcon.isEmpty())
+        return;
+
+    QRectF iconRect(BORDER_SPACE,NODE_CAPTION_HIGH+ DEFAULT_NODE_HIGH_BEGIN+BORDER_SPACE,16,16);
+    QRectF iconSource(0.0,0.0,16.0,16.0);
+
+    QPixmap pixmap(strIcon);
+    
+    painter->drawPixmap(iconRect,pixmap,iconSource);
+}
+
+void DefaultNodePainter::drawOperationIcon(QPainter *painter, NodeGraphicsObject &ngo) const 
+{
+    QRectF iconSource(0.0,0.0,16.0,16.0);
+    painter->drawPixmap(QRectF(ngo.GetStepNextRect()),QPixmap(":/imgs/step_next.png"),iconSource);
+    painter->drawPixmap(QRectF(ngo.GetStepOverRect()),QPixmap(":/imgs/step_over.png"),iconSource);
+}
+
+void DefaultNodePainter::drawOperationResult(QPainter *painter, NodeGraphicsObject &ngo) const 
+{
+    AbstractGraphModel &model = ngo.graphModel();
+    NodeId const nodeId = ngo.nodeId();
+
+    NodeResultType resultType = (NodeResultType)model.nodeData(nodeId, NodeRole::ResultValue).toInt();
+    QPixmap iconPixmap;
+    if (resultType == NodeResultType::ResultType_NONE)
+        return;
+    else if (resultType == NodeResultType::ResultType_FAILED)
+    {
+        iconPixmap = QPixmap(":/imgs/tip_failed.png");
+    }
+    else if (resultType == NodeResultType::ResultType_SUCCEED)
+    {
+        iconPixmap = QPixmap(":/imgs/tip_success.png");
+    }
+    else if (resultType == NodeResultType::ResultType_UNREACHABLE)
+    {
+        iconPixmap = QPixmap(":/imgs/tip_error.png");
+    }
+    QRectF iconSource(0.0,0.0,17.0,17.0);
+    QRectF iconTarget(0.0,0.0,17.0,17.0);
+    painter->drawPixmap(iconTarget,iconPixmap,iconSource);
+
 }
 
 } // namespace QtNodes

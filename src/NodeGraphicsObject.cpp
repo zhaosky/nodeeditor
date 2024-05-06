@@ -150,6 +150,16 @@ void NodeGraphicsObject::reactToConnection(ConnectionGraphicsObject const *cgo)
     update();
 }
 
+QRect NodeGraphicsObject::GetStepOverRect()
+{
+    return QRect(164,DEFAULT_NODE_HIGH_BEGIN+12,16,16);
+}
+
+QRect NodeGraphicsObject::GetStepNextRect()
+{
+    return  QRect(135,DEFAULT_NODE_HIGH_BEGIN+14,16,16);
+}
+
 void NodeGraphicsObject::paint(QPainter *painter, QStyleOptionGraphicsItem const *option, QWidget *)
 {
     painter->setClipRect(option->exposedRect);
@@ -289,10 +299,21 @@ void NodeGraphicsObject::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 
     QGraphicsObject::mouseReleaseEvent(event);
 
-    // position connections precisely after fast node move
-    moveConnections();
+    QPoint point = event->pos().toPoint(); 
+    if (GetStepOverRect().contains(point))
+    {
+        qDebug() << "step over";
+    }
+    else if (GetStepNextRect().contains(point))
+    {
+        qDebug() << "step next";
+    }
+    else{
+        // position connections precisely after fast node move
+        moveConnections();
 
-    nodeScene()->nodeClicked(_nodeId);
+        nodeScene()->nodeClicked(_nodeId);
+    }
 }
 
 void NodeGraphicsObject::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
