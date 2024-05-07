@@ -48,7 +48,7 @@ void DefaultNodePainter::drawCaptionRect(QPainter *painter, NodeGraphicsObject &
 
     QSize size = geometry.size(ngo.nodeId());
 
-    QRect captionRect(0,DEFAULT_NODE_HIGH_BEGIN,size.width(),NODE_CAPTION_HIGH);
+    QRect captionRect(0+1,DEFAULT_NODE_HIGH_BEGIN+1,size.width()-2,NODE_CAPTION_HIGH-1);
     painter->fillRect(captionRect,QBrush(QColor("#253749")));
 
     QString strDesprition = model.nodeData(nodeId, NodeRole::Description).toString();
@@ -97,7 +97,7 @@ void DefaultNodePainter::drawNodeRect(QPainter *painter, NodeGraphicsObject &ngo
 
     QRectF boundary(0, DEFAULT_NODE_HIGH_BEGIN, size.width(), size.height()- DEFAULT_NODE_HIGH_BEGIN);
 
-    double const radius = 3.0;
+    double const radius = 0.0;
 
     painter->drawRoundedRect(boundary, radius, radius);
 }
@@ -114,7 +114,7 @@ void DefaultNodePainter::drawConnectionPoints(QPainter *painter, NodeGraphicsObj
     auto const &connectionStyle = StyleCollection::connectionStyle();
 
     float diameter = nodeStyle.ConnectionPointDiameter;
-    auto reducedDiameter = diameter * 0.6;
+    //auto reducedDiameter = diameter * 0.6;
 
     for (PortType portType : {PortType::Out, PortType::In}) {
         size_t const n = model
@@ -166,7 +166,7 @@ void DefaultNodePainter::drawConnectionPoints(QPainter *painter, NodeGraphicsObj
             }
 
             // painter->drawEllipse(p, reducedDiameter * r, reducedDiameter * r);
-            painter->drawPixmap(p-QPoint(10,10),QPixmap(":/imgs/node_connect.png"));
+            painter->drawPixmap(p-QPoint(10,8),QPixmap(":/imgs/node_connect.png"));
         }
     }
 
@@ -314,9 +314,10 @@ void DefaultNodePainter::drawShowTime(QPainter *painter, NodeGraphicsObject &ngo
     QJsonDocument json = QJsonDocument::fromVariant(model.nodeData(nodeId, NodeRole::Style));
     NodeStyle nodeStyle(json.object());
 
-    painter->setPen(nodeStyle.FontColor);
+    painter->save();
+    painter->setPen(QColor("#A7A7A7"));
     painter->drawText(timeRect,Qt::AlignLeft| Qt::AlignVCenter, strTime);
-
+    painter->restore();
 }
 
 void DefaultNodePainter::drawNodeIcon(QPainter *painter, NodeGraphicsObject &ngo) const 

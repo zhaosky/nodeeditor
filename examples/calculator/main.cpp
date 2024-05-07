@@ -24,6 +24,7 @@ using QtNodes::DataFlowGraphicsScene;
 using QtNodes::DataFlowGraphModel;
 using QtNodes::GraphicsView;
 using QtNodes::NodeDelegateModelRegistry;
+using QtNodes::NodeStyle;
 
 static std::shared_ptr<NodeDelegateModelRegistry> registerDataModels()
 {
@@ -45,21 +46,44 @@ static std::shared_ptr<NodeDelegateModelRegistry> registerDataModels()
 
 static void setStyle()
 {
+    NodeStyle::setNodeStyle(
+        R"(
+  {
+    "NodeStyle": {
+      "NormalBoundaryColor": [38,87, 156],
+      "SelectedBoundaryColor": [64,255,251],
+     "GradientColor0": "gray",
+     "GradientColor1": [80, 80, 80],
+     "GradientColor2": [64, 64, 64],
+     "GradientColor3": [58, 58, 58],
+      "ShadowColor": [20, 20, 20],
+      "FontColor": "white",
+      "FontColorFaded": [100, 100, 100],
+      "ConnectionPointColor": [65,120,198],
+      "FilledConnectionPointColor": [65,120,198],
+      "PenWidth": 1.0,
+      "HoveredPenWidth": 1.0,
+      "ConnectionPointDiameter": 10.0,
+      "Opacity": 1.0
+    }
+  }
+  )");
+
     ConnectionStyle::setConnectionStyle(
         R"(
   {
     "ConnectionStyle": {
-      "ConstructionColor": "gray",
-      "NormalColor": "black",
-      "SelectedColor": "gray",
-      "SelectedHaloColor": "deepskyblue",
+      "ConstructionColor": [65,120,198],
+      "NormalColor": [65,120,198],
+      "SelectedColor": [65,120,198],
+      "SelectedHaloColor": [65,120,198],
       "HoveredColor": "deepskyblue",
 
-      "LineWidth": 3.0,
-      "ConstructionLineWidth": 2.0,
+      "LineWidth": 1.0,
+      "ConstructionLineWidth": 1.0,
       "PointDiameter": 10.0,
 
-      "UseDataDefinedColors": true
+      "UseDataDefinedColors": false
     }
   }
   )");
