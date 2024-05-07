@@ -103,6 +103,8 @@ QPointF DefaultVerticalNodeGeometry::portPosition(NodeId const nodeId,
         double x = (size.width() - (nInPorts - 1) * inPortWidth) / 2.0 + portIndex * inPortWidth;
 
         double y = 0.0 + DEFAULT_NODE_HIGH_BEGIN;
+        if(inPortWidth == _portSpasing)//no port text
+            x = (portIndex + 1) * (size.width()/(nInPorts+1));
 
         result = QPointF(x, y);
 
@@ -116,6 +118,8 @@ QPointF DefaultVerticalNodeGeometry::portPosition(NodeId const nodeId,
         double x = (size.width() - (nOutPorts - 1) * outPortWidth) / 2.0 + portIndex * outPortWidth;
 
         double y = size.height();
+        if(outPortWidth == _portSpasing)//no port text
+            x = (portIndex + 1) * (size.width()/(nOutPorts + 1));
 
         result = QPointF(x, y);
 

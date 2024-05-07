@@ -332,7 +332,7 @@ void DefaultNodePainter::drawNodeIcon(QPainter *painter, NodeGraphicsObject &ngo
     QRectF iconRect(BORDER_SPACE,NODE_CAPTION_HIGH+ DEFAULT_NODE_HIGH_BEGIN+BORDER_SPACE,16,16);
     QRectF iconSource(0.0,0.0,16.0,16.0);
 
-    QPixmap pixmap(strIcon);
+    QPixmap pixmap = QPixmap(strIcon).scaled(QSize(16,16),Qt::KeepAspectRatio,Qt::SmoothTransformation);
     
     painter->drawPixmap(iconRect,pixmap,iconSource);
 }
