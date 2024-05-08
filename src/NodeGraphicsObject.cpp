@@ -302,10 +302,12 @@ void NodeGraphicsObject::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
     QPoint point = event->pos().toPoint(); 
     if (GetStepOverRect().contains(point))
     {
+        nodeScene()->setNodeExecType(_nodeId,NodeExecType::EXECTYPE_STEP_OVER);
         qDebug() << "step over";
     }
     else if (GetStepNextRect().contains(point))
     {
+        nodeScene()->setNodeExecType(_nodeId,NodeExecType::EXECTYPE_STEP_NEXT);
         qDebug() << "step next";
     }
     else{

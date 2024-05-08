@@ -70,7 +70,7 @@ std::shared_ptr<NodeData> ImageShowModel::outData(PortIndex)
     return _nodeData;
 }
 
-void ImageShowModel::setInData(std::shared_ptr<NodeData> nodeData, PortIndex const)
+void ImageShowModel::setInData(std::shared_ptr<NodeData> nodeData, PortIndex const,bool bContinueExec)
 {
     _nodeData = nodeData;
 

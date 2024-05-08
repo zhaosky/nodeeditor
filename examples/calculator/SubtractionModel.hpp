@@ -52,7 +52,7 @@ public:
     QString name() const override { return QStringLiteral("Subtraction"); }
 
 private:
-    void compute() override
+    void compute(bool bContinueExec) override
     {
         PortIndex const outPortIndex = 0;
 
@@ -65,6 +65,6 @@ private:
             _result.reset();
         }
 
-        Q_EMIT dataUpdated(outPortIndex);
+        Q_EMIT dataUpdated(outPortIndex,bContinueExec);
     }
 };

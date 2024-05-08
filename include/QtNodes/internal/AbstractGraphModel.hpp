@@ -184,6 +184,8 @@ public:
    */
     virtual void loadNode(QJsonObject const &) {}
 
+    virtual void setNodeExecType(NodeId,NodeExecType)const {}
+
 public:
     /**
    * Function clears connections attached to the ports that are scheduled to be

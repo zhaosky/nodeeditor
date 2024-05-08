@@ -111,6 +111,11 @@ QUndoStack &BasicGraphicsScene::undoStack()
     return *_undoStack;
 }
 
+void BasicGraphicsScene::setNodeExecType(const NodeId nodeId, NodeExecType nType) 
+{
+    _graphModel.setNodeExecType(nodeId,nType);
+}
+
 std::unique_ptr<ConnectionGraphicsObject> const &BasicGraphicsScene::makeDraftConnection(
     ConnectionId const incompleteConnectionId)
 {

@@ -24,7 +24,7 @@ std::shared_ptr<NodeData> MathOperationDataModel::outData(PortIndex)
     return std::static_pointer_cast<NodeData>(_result);
 }
 
-void MathOperationDataModel::setInData(std::shared_ptr<NodeData> data, PortIndex portIndex)
+void MathOperationDataModel::setInData(std::shared_ptr<NodeData> data, PortIndex portIndex,bool bContinueExec)
 {
     auto numberData = std::dynamic_pointer_cast<DecimalData>(data);
 
@@ -38,5 +38,16 @@ void MathOperationDataModel::setInData(std::shared_ptr<NodeData> data, PortIndex
         _number2 = numberData;
     }
 
-    compute();
+    if (bContinueExec)
+        compute(bContinueExec);
+}
+
+void MathOperationDataModel::execStepOver() 
+{
+    compute(false);
+}
+
+void MathOperationDataModel::execStepNext() 
+{
+    compute(true);
 }

@@ -59,7 +59,13 @@ enum NodeResultType {
     ResultType_FAILED,      //failed result ,show image failed
     ResultType_UNREACHABLE, //unreachable result ,show image unreachable
 };
-//Q_ENUM_NS(NodeResultType)
+
+enum class NodeExecType{
+    EXECTYPE_NONE,
+    EXECTYPE_STEP_OVER,
+    EXECTYPE_STEP_NEXT,
+};
+Q_ENUM_NS(NodeExecType)
 /**
  * Constants for fetching port-related information from the GraphModel.
  */

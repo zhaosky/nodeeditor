@@ -77,6 +77,7 @@ public:
     void loadNode(QJsonObject const &nodeJson) override;
 
     void load(QJsonObject const &json) override;
+    void setNodeExecType(NodeId nodeId,NodeExecType nType)const override;
 
     /**
    * Fetches the NodeDelegateModel for the given `nodeId` and tries to cast the
@@ -118,7 +119,7 @@ private Q_SLOTS:
    * - When a node restored from JSON an needs to send data downstream.
    *   @see DataFlowGraphModel::loadNode
    */
-    void onOutPortDataUpdated(NodeId const nodeId, PortIndex const portIndex);
+    void onOutPortDataUpdated(NodeId const nodeId, PortIndex const portIndex,bool bContinue);
 
     /// Function is called after detaching a connection.
     void propagateEmptyDataTo(NodeId const nodeId, PortIndex const portIndex);
@@ -133,6 +134,7 @@ private:
     std::unordered_set<ConnectionId> _connectivity;
 
     mutable std::unordered_map<NodeId, NodeGeometryData> _nodeGeometryData;
+    bool   _nodeContinueExec = false;
 };
 
 } // namespace QtNodes

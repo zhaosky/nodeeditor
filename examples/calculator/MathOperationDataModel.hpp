@@ -32,12 +32,14 @@ public:
 
     std::shared_ptr<NodeData> outData(PortIndex port) override;
 
-    void setInData(std::shared_ptr<NodeData> data, PortIndex portIndex) override;
+    void setInData(std::shared_ptr<NodeData> data, PortIndex portIndex,bool bContinueExec) override;
 
     QWidget *embeddedWidget() override { return nullptr; }
+    void execStepOver()override;
+    void execStepNext()override;
 
 protected:
-    virtual void compute() = 0;
+    virtual void compute(bool bContinueExec) = 0;
 
 protected:
     std::weak_ptr<DecimalData> _number1;

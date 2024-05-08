@@ -36,7 +36,7 @@ std::shared_ptr<NodeData> TextDisplayDataModel::outData(PortIndex)
     return ptr;
 }
 
-void TextDisplayDataModel::setInData(std::shared_ptr<NodeData> data, PortIndex const)
+void TextDisplayDataModel::setInData(std::shared_ptr<NodeData> data, PortIndex const,bool bContinueExec)
 {
     auto textData = std::dynamic_pointer_cast<TextData>(data);
 

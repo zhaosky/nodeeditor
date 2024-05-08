@@ -51,6 +51,8 @@ public:
     virtual NodeResultType getResult() const { return ResultType_NONE; }
 
     virtual int nodeComputeTime() const {return 0;};
+    virtual void execStepOver(){};
+    virtual void execStepNext(){};
 
 public:
     QJsonObject save() const override;
@@ -70,7 +72,7 @@ public:
     void setNodeStyle(NodeStyle const &style);
 
 public:
-    virtual void setInData(std::shared_ptr<NodeData> nodeData, PortIndex const portIndex) = 0;
+    virtual void setInData(std::shared_ptr<NodeData> nodeData, PortIndex const portIndex,bool bContinueExec) = 0;
 
     virtual std::shared_ptr<NodeData> outData(PortIndex const port) = 0;
 
@@ -101,7 +103,8 @@ public Q_SLOTS:
 Q_SIGNALS:
 
     /// Triggers the updates in the nodes downstream.
-    void dataUpdated(PortIndex const index);
+    //  bContinue is set node continue exec
+    void dataUpdated(PortIndex const index,bool bContinue = false);
 
     /// Triggers the propagation of the empty data downstream.
     void dataInvalidated(PortIndex const index);

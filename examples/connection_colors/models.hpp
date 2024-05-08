@@ -101,7 +101,7 @@ public:
         return std::make_shared<SimpleNodeData>();
     }
 
-    void setInData(std::shared_ptr<NodeData>, PortIndex const) override
+    void setInData(std::shared_ptr<NodeData>, PortIndex const,bool) override
     {
         //
     }

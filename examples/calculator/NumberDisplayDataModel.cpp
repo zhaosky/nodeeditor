@@ -36,7 +36,7 @@ std::shared_ptr<NodeData> NumberDisplayDataModel::outData(PortIndex)
     return ptr;
 }
 
-void NumberDisplayDataModel::setInData(std::shared_ptr<NodeData> data, PortIndex portIndex)
+void NumberDisplayDataModel::setInData(std::shared_ptr<NodeData> data, PortIndex portIndex,bool bContinueExec)
 {
     _numberData = std::dynamic_pointer_cast<DecimalData>(data);
 

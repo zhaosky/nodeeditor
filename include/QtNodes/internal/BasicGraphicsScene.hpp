@@ -52,6 +52,8 @@ public:
     void setNodePainter(std::unique_ptr<AbstractNodePainter> newPainter);
 
     QUndoStack &undoStack();
+    //set exec Type
+    void setNodeExecType(const NodeId nodeId,NodeExecType nType);
 
 public:
     /// Creates a "draft" instance of ConnectionGraphicsObject.
