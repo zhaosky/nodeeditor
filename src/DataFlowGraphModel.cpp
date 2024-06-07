@@ -2,6 +2,7 @@
 #include "ConnectionIdHash.hpp"
 
 #include <QJsonArray>
+#include <QGraphicsItem>
 
 #include <stdexcept>
 
@@ -64,10 +65,10 @@ NodeId DataFlowGraphModel::addNode(QString const nodeType)
         NodeId newId = newNodeId();
 
         connect(model.get(),
-                &NodeDelegateModel::dataUpdated,
+                &NodeDelegateModel::dataUpdated,this,
                 [newId, this](PortIndex const portIndex,bool bContinue) {
                     onOutPortDataUpdated(newId, portIndex,bContinue);
-                });
+                },Qt::QueuedConnection);
 
         connect(model.get(),
                 &NodeDelegateModel::portsAboutToBeDeleted,
@@ -103,6 +104,10 @@ NodeId DataFlowGraphModel::addNode(QString const nodeType)
                 [newId, this](int err, const QString &strResult) {
                     Q_EMIT computingFinished(newId, err, strResult);
                 });
+        connect(model.get(),&NodeDelegateModel::nodeUpdated,this,[newId,this](){
+            // Triggers repainting on the scene.
+            Q_EMIT inPortDataWasSet(newId, PortType::In, 0);
+        });
 
         _models[newId] = std::move(model);
 
@@ -116,6 +121,10 @@ NodeId DataFlowGraphModel::addNode(QString const nodeType)
 
 bool DataFlowGraphModel::connectionPossible(ConnectionId const connectionId) const
 {
+     NodePaintType paintType =(NodePaintType) nodeData(getNodeId(PortType::Out, connectionId), NodeRole::PaintType).toInt();
+    if (paintType == NodePaintType::PaintType_FLOWCONTROL)
+        return true;
+
     auto getDataType = [&](PortType const portType) {
         return portData(getNodeId(portType, connectionId),
                         portType,
@@ -258,6 +267,12 @@ QVariant DataFlowGraphModel::nodeData(NodeId nodeId, NodeRole role) const
         break;
     case NodeRole::ResultValue:
         result = model->getResult();
+        break;
+    case NodeRole::Running:
+        result = model->operationStatus();
+        break;
+    case NodeRole::PaintType:
+        result = model->getPaintType();
         break;
     }
 
@@ -491,10 +506,10 @@ void DataFlowGraphModel::loadNode(QJsonObject const &nodeJson)
 
     if (model) {
         connect(model.get(),
-                &NodeDelegateModel::dataUpdated,
+                &NodeDelegateModel::dataUpdated,this,
                 [restoredNodeId, this](PortIndex const portIndex,bool bContinue) {
                     onOutPortDataUpdated(restoredNodeId, portIndex,bContinue);
-                });
+                },Qt::QueuedConnection);
 
         connect(model.get(), &NodeDelegateModel::computingStarted, this, [restoredNodeId, this]() {
             Q_EMIT computingStarted(restoredNodeId);
@@ -506,6 +521,9 @@ void DataFlowGraphModel::loadNode(QJsonObject const &nodeJson)
                 [restoredNodeId, this](int err, const QString &strResult) {
                     Q_EMIT computingFinished(restoredNodeId, err, strResult);
                 });
+        connect(model.get(),&NodeDelegateModel::nodeUpdated,this,[restoredNodeId, this](){
+            Q_EMIT inPortDataWasSet(restoredNodeId, PortType::In, 0);
+        });
 
         _models[restoredNodeId] = std::move(model);
 
@@ -545,26 +563,31 @@ void DataFlowGraphModel::load(QJsonObject const &jsonDocument)
 
 void DataFlowGraphModel::setNodeExecType(NodeId nodeId,NodeExecType nType) const
 {
-     auto it = _models.find(nodeId);
+    auto it = _models.find(nodeId);
     if (it == _models.end())
     {
         qDebug() << "error:can't find nodeid";
         return;
     }
-
-    auto &model = it->second;
+    Q_EMIT sgnDataFlowBegin(nodeId);
+    auto &nodeModel = it->second;
 
     if (nType == NodeExecType::EXECTYPE_STEP_NEXT)
     {
-        model->execStepNext();
+        nodeModel->execStepNext();
     }
     else if (nType == NodeExecType::EXECTYPE_STEP_OVER)
-    {
-        model->execStepOver();
+    { 
+        nodeModel->execStepOver();
     }
 }
 
-void DataFlowGraphModel::onOutPortDataUpdated(NodeId const nodeId, PortIndex const portIndex,bool bContinue)
+bool DataFlowGraphModel::hasNodeExec()
+{
+    return _nodeContinueExec;
+}
+
+void DataFlowGraphModel::onOutPortDataUpdated(NodeId const nodeId,PortIndex const portIndex,bool bContinue)
 {
     std::unordered_set<ConnectionId> const &connected = connections(nodeId,
                                                                     PortType::Out,
@@ -573,8 +596,28 @@ void DataFlowGraphModel::onOutPortDataUpdated(NodeId const nodeId, PortIndex con
     QVariant const portDataToPropagate = portData(nodeId, PortType::Out, portIndex, PortRole::Data);
     _nodeContinueExec = bContinue;
 
+    if (connected.empty())
+    {
+        _nodeContinueExec = false;
+        Q_EMIT sgnDataFlowFinished(nodeId);
+        qDebug() << "no connected node";
+        return;
+    }
+
+    //judge last node
+    std::unordered_set<ConnectionId> lastConnected;
+
     for (auto const &cn : connected) {
         setPortData(cn.inNodeId, PortType::In, cn.inPortIndex, portDataToPropagate, PortRole::Data);
+         std::unordered_set<ConnectionId> currentConnected = connections(cn.outNodeId,PortType::Out,portIndex);
+         if(!currentConnected.empty())
+            lastConnected.insert(currentConnected.begin(),currentConnected.end());
+    }
+    if(lastConnected.empty())
+    {
+         _nodeContinueExec = false;
+         Q_EMIT sgnDataFlowFinished(nodeId);
+         qDebug() << "no connected node";
     }
 }
 

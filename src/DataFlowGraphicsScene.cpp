@@ -169,9 +169,9 @@ bool DataFlowGraphicsScene::save() const
     return false;
 }
 
-QString DataFlowGraphicsScene::getSaveMsg() const
+QJsonObject DataFlowGraphicsScene::getSaveMsg() const
 {
-    return QString::fromLatin1(QJsonDocument(_graphModel.save()).toJson());
+    return _graphModel.save();
 }
 
 bool DataFlowGraphicsScene::load()
@@ -200,16 +200,16 @@ bool DataFlowGraphicsScene::load()
     return true;
 }
 
-bool DataFlowGraphicsScene::loadMsgFromString(const QString &strCfg)
+bool DataFlowGraphicsScene::loadMsgFromObj(const QJsonObject &strCfg)
 {
     if (strCfg.isEmpty())
         return false;
 
     clearScene();
 
-    _graphModel.load(QJsonDocument::fromJson(strCfg.toLatin1()).object());
+    _graphModel.load(strCfg);
 
-     Q_EMIT sceneLoaded();
+    Q_EMIT sceneLoaded();
 
     return true;
 }

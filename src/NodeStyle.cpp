@@ -113,6 +113,13 @@ void NodeStyle::loadJson(QJsonObject const &json)
     NODE_STYLE_READ_FLOAT(obj, ConnectionPointDiameter);
 
     NODE_STYLE_READ_FLOAT(obj, Opacity);
+
+    NODE_STYLE_READ_COLOR(obj, HoverBoundaryColor);
+    NODE_STYLE_READ_COLOR(obj, OperationBoundaryColor);
+    NODE_STYLE_READ_COLOR(obj, NormalCaptionRectColor);
+    NODE_STYLE_READ_COLOR(obj, SelectedCaptionRectColor);
+    NODE_STYLE_READ_COLOR(obj, HoverCaptionRectColor);
+    NODE_STYLE_READ_COLOR(obj, OperationCaptionRectColor);
 }
 
 QJsonObject NodeStyle::toJson() const
@@ -138,6 +145,13 @@ QJsonObject NodeStyle::toJson() const
     NODE_STYLE_WRITE_FLOAT(obj, ConnectionPointDiameter);
 
     NODE_STYLE_WRITE_FLOAT(obj, Opacity);
+
+    NODE_STYLE_WRITE_COLOR(obj, HoverBoundaryColor);
+    NODE_STYLE_WRITE_COLOR(obj, OperationBoundaryColor);
+    NODE_STYLE_WRITE_COLOR(obj, NormalCaptionRectColor);
+    NODE_STYLE_WRITE_COLOR(obj, SelectedCaptionRectColor);
+    NODE_STYLE_WRITE_COLOR(obj, HoverCaptionRectColor);
+    NODE_STYLE_WRITE_COLOR(obj, OperationCaptionRectColor);
 
     QJsonObject root;
     root["NodeStyle"] = obj;

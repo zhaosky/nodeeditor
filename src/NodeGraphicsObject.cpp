@@ -15,6 +15,7 @@
 #include "NodeConnectionInteraction.hpp"
 #include "StyleCollection.hpp"
 #include "UndoCommands.hpp"
+#include "DefaultFlowControlNodePainter.hpp"
 
 namespace QtNodes {
 
@@ -163,8 +164,11 @@ QRect NodeGraphicsObject::GetStepNextRect()
 void NodeGraphicsObject::paint(QPainter *painter, QStyleOptionGraphicsItem const *option, QWidget *)
 {
     painter->setClipRect(option->exposedRect);
-
-    nodeScene()->nodePainter().paint(painter, *this);
+    NodePaintType paintType =(NodePaintType) _graphModel.nodeData(_nodeId, NodeRole::PaintType).toInt();
+    if (paintType == NodePaintType::PaintType_FLOWCONTROL)
+        nodeScene()->flowControlNodePainter().paint(painter, *this);
+    else
+        nodeScene()->nodePainter().paint(painter, *this);
 }
 
 QVariant NodeGraphicsObject::itemChange(GraphicsItemChange change, const QVariant &value)
@@ -178,8 +182,12 @@ QVariant NodeGraphicsObject::itemChange(GraphicsItemChange change, const QVarian
 
 void NodeGraphicsObject::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-    //if (_nodeState.locked())
-    //return;
+    NodePaintType paintType =(NodePaintType) _graphModel.nodeData(_nodeId, NodeRole::PaintType).toInt();
+    if (paintType == NodePaintType::PaintType_FLOWCONTROL && this->boundingRect().contains(event->pos()))
+    {
+        event->ignore();
+        return;
+    }
 
     AbstractNodeGeometry &geometry = nodeScene()->nodeGeometry();
 
@@ -241,6 +249,7 @@ void NodeGraphicsObject::mousePressEvent(QGraphicsSceneMouseEvent *event)
     if (isSelected()) {
         Q_EMIT nodeScene()->nodeSelected(_nodeId);
     }
+    qDebug() << "node pressed"<< event->pos()<< mapToScene(event->pos()) << event->screenPos();
 }
 
 void NodeGraphicsObject::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
@@ -291,6 +300,13 @@ void NodeGraphicsObject::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
     r = r.united(mapToScene(boundingRect()).boundingRect());
 
     nodeScene()->setSceneRect(r);
+     QPoint point = event->pos().toPoint(); 
+    if (GetStepOverRect().contains(point) || GetStepNextRect().contains(point))
+    {
+        if(nodeScene()->hasNodeExec())
+            QToolTip::showText(point, "has node exec");
+        qDebug() << "step over";
+    }
 }
 
 void NodeGraphicsObject::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
@@ -302,12 +318,14 @@ void NodeGraphicsObject::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
     QPoint point = event->pos().toPoint(); 
     if (GetStepOverRect().contains(point))
     {
-        nodeScene()->setNodeExecType(_nodeId,NodeExecType::EXECTYPE_STEP_OVER);
+        if(!nodeScene()->hasNodeExec())
+            nodeScene()->setNodeExecType(_nodeId,NodeExecType::EXECTYPE_STEP_OVER);
         qDebug() << "step over";
     }
     else if (GetStepNextRect().contains(point))
     {
-        nodeScene()->setNodeExecType(_nodeId,NodeExecType::EXECTYPE_STEP_NEXT);
+        if(!nodeScene()->hasNodeExec())
+            nodeScene()->setNodeExecType(_nodeId,NodeExecType::EXECTYPE_STEP_NEXT);
         qDebug() << "step next";
     }
     else{

@@ -34,27 +34,25 @@ GraphicsView::GraphicsView(QWidget *parent)
     , _copySelectionAction(Q_NULLPTR)
     , _pasteAction(Q_NULLPTR)
 {
-    setDragMode(QGraphicsView::ScrollHandDrag);
+    setDragMode(QGraphicsView::RubberBandDrag);
     setRenderHint(QPainter::Antialiasing);
+    //setAlignment(Qt::AlignLeft|Qt::AlignTop);
+    //setAlignment(Qt::AlignCenter);
+    qDebug() << alignment();
 
     auto const &flowViewStyle = StyleCollection::flowViewStyle();
 
     setBackgroundBrush(flowViewStyle.BackgroundColor);
 
-    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    //setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    //setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
-    setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
+    //setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
 
     setCacheMode(QGraphicsView::CacheBackground);
     setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
 
-    setScaleRange(0.3, 2);
-
-    // Sets the scene rect to its maximum possible ranges to avoid autu scene range
-    // re-calculation when expanding the all QGraphicsItems common rect.
-    int maxSize = 32767;
-    setSceneRect(-maxSize, -maxSize, (maxSize * 2), (maxSize * 2));
+    setScaleRange(0.2, 2);
 }
 
 GraphicsView::GraphicsView(BasicGraphicsScene *scene, QWidget *parent)
@@ -90,7 +88,7 @@ void GraphicsView::setScene(BasicGraphicsScene *scene)
 
     {
         delete _deleteSelectionAction;
-        _deleteSelectionAction = new QAction(QStringLiteral("Delete Selection"), this);
+        _deleteSelectionAction = new QAction(QStringLiteral("删除"), this);
         _deleteSelectionAction->setShortcutContext(Qt::ShortcutContext::WidgetShortcut);
         _deleteSelectionAction->setShortcut(QKeySequence(QKeySequence::Delete));
         connect(_deleteSelectionAction,
@@ -116,7 +114,7 @@ void GraphicsView::setScene(BasicGraphicsScene *scene)
 
     {
         delete _copySelectionAction;
-        _copySelectionAction = new QAction(QStringLiteral("Copy Selection"), this);
+        _copySelectionAction = new QAction(QStringLiteral("复制"), this);
         _copySelectionAction->setShortcutContext(Qt::ShortcutContext::WidgetShortcut);
         _copySelectionAction->setShortcut(QKeySequence(QKeySequence::Copy));
         connect(_copySelectionAction,
@@ -129,7 +127,7 @@ void GraphicsView::setScene(BasicGraphicsScene *scene)
 
     {
         delete _pasteAction;
-        _pasteAction = new QAction(QStringLiteral("Copy Selection"), this);
+        _pasteAction = new QAction(QStringLiteral("粘贴"), this);
         _pasteAction->setShortcutContext(Qt::ShortcutContext::WidgetShortcut);
         _pasteAction->setShortcut(QKeySequence(QKeySequence::Paste));
         connect(_pasteAction, &QAction::triggered, this, &GraphicsView::onPasteObjects);
@@ -165,6 +163,12 @@ void GraphicsView::contextMenuEvent(QContextMenuEvent *event)
 {
     if (itemAt(event->pos())) {
         QGraphicsView::contextMenuEvent(event);
+        QMenu *itemMenu = new QMenu();
+        itemMenu->addAction(_copySelectionAction);
+        itemMenu->addAction(_pasteAction);
+        itemMenu->addAction(_deleteSelectionAction);
+        itemMenu->setAttribute(Qt::WA_DeleteOnClose);
+        itemMenu->exec(event->globalPos());
         return;
     }
 
@@ -388,6 +392,15 @@ void GraphicsView::showEvent(QShowEvent *event)
     centerScene();
 }
 
+void GraphicsView::paintEvent(QPaintEvent *event) 
+{
+    QGraphicsView::paintEvent(event);
+    
+    QPainter painter(viewport());
+    paintScaleMsg(painter);
+
+}
+
 BasicGraphicsScene *GraphicsView::nodeScene()
 {
     return dynamic_cast<BasicGraphicsScene *>(scene());
@@ -402,4 +415,9 @@ QPointF GraphicsView::scenePastePosition()
         origin = viewRect.center();
 
     return mapToScene(origin);
+}
+
+void GraphicsView::paintScaleMsg(const QPainter &painter) 
+{
+
 }

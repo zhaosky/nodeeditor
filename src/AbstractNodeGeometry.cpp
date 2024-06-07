@@ -19,12 +19,12 @@ QRectF AbstractNodeGeometry::boundingRect(NodeId const nodeId) const
 {
     QSize s = size(nodeId);
 
-    double ratio = 0.20;
+    double ratio = 0.1;
 
     int widthMargin = s.width() * ratio;
     int heightMargin = s.height() * ratio;
 
-    QMargins margins(widthMargin, heightMargin, widthMargin, heightMargin);
+    QMargins margins(0, heightMargin, 0, heightMargin);
 
     QRectF r(QPointF(0, 0), s);
 

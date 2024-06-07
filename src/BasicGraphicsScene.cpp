@@ -8,6 +8,7 @@
 #include "DefaultVerticalNodeGeometry.hpp"
 #include "GraphicsView.hpp"
 #include "NodeGraphicsObject.hpp"
+#include "DefaultFlowControlNodePainter.hpp"
 
 #include <QUndoStack>
 
@@ -36,6 +37,7 @@ BasicGraphicsScene::BasicGraphicsScene(AbstractGraphModel &graphModel, QObject *
     , _graphModel(graphModel)
     , _nodeGeometry(std::make_unique<DefaultHorizontalNodeGeometry>(_graphModel))
     , _nodePainter(std::make_unique<DefaultNodePainter>())
+    , _flowControlPainter(std::make_unique<DefaultFlowControlNodePainter>())
     , _nodeDrag(false)
     , _undoStack(new QUndoStack(this))
     , _orientation(Qt::Horizontal)
@@ -106,14 +108,28 @@ void BasicGraphicsScene::setNodePainter(std::unique_ptr<AbstractNodePainter> new
     _nodePainter = std::move(newPainter);
 }
 
+void BasicGraphicsScene::setFlowControlNodePainter(std::unique_ptr<DefaultFlowControlNodePainter> newPainter)
+{
+    _flowControlPainter = std::move(newPainter);
+}
+DefaultFlowControlNodePainter &BasicGraphicsScene::flowControlNodePainter()
+{
+    return *_flowControlPainter;
+}
+
 QUndoStack &BasicGraphicsScene::undoStack()
 {
     return *_undoStack;
 }
 
-void BasicGraphicsScene::setNodeExecType(const NodeId nodeId, NodeExecType nType) 
+void BasicGraphicsScene::setNodeExecType(const NodeId nodeId, NodeExecType nType)
 {
-    _graphModel.setNodeExecType(nodeId,nType);
+    _graphModel.setNodeExecType(nodeId, nType);
+}
+
+bool BasicGraphicsScene::hasNodeExec()
+{
+    return _graphModel.hasNodeExec();
 }
 
 std::unique_ptr<ConnectionGraphicsObject> const &BasicGraphicsScene::makeDraftConnection(

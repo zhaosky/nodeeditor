@@ -77,10 +77,15 @@ void DefaultVerticalNodeGeometry::recomputeSize(NodeId const nodeId) const
     width += _portSpasing;
     width += _portSpasing;
 
-    width = (width > DEFAULT_NODE_WIDTH) ? width : DEFAULT_NODE_WIDTH;
-    height = (height > DEFAULT_NODE_HIGH) ? height : DEFAULT_NODE_HIGH;
-
-
+    NodePaintType paintType =(NodePaintType) _graphModel.nodeData(nodeId, NodeRole::PaintType).toInt();
+    if (NodePaintType::PaintType_FLOWCONTROL == paintType){
+        width = 178;
+        height = 72;
+    }else{
+        width = (width > DEFAULT_NODE_WIDTH) ? width : DEFAULT_NODE_WIDTH;
+        height = (height > DEFAULT_NODE_HIGH) ? height : DEFAULT_NODE_HIGH;
+    }
+    
     QSize size(width, height);
 
     _graphModel.setNodeData(nodeId, NodeRole::Size, size);
@@ -186,10 +191,16 @@ QPointF DefaultVerticalNodeGeometry::captionPosition(NodeId const nodeId) const
 QPointF DefaultVerticalNodeGeometry::widgetPosition(NodeId const nodeId) const
 {
     QSize size = _graphModel.nodeData<QSize>(nodeId, NodeRole::Size);
+    NodePaintType paintType =(NodePaintType) _graphModel.nodeData(nodeId, NodeRole::PaintType).toInt();
 
     unsigned int captionHeight = captionRect(nodeId).height();
+    auto w = _graphModel.nodeData<QWidget *>(nodeId, NodeRole::Widget);
 
-    if (auto w = _graphModel.nodeData<QWidget *>(nodeId, NodeRole::Widget)) {
+    if(NodePaintType::PaintType_FLOWCONTROL == paintType && w){
+        return QPointF((size.width() - w->width())/2.0 ,(size.height() - w->height())/2.0);
+    }
+
+    if (w) {
         // If the widget wants to use as much vertical space as possible,
         // place it immediately after the caption.
         if (w->sizePolicy().verticalPolicy() & QSizePolicy::ExpandFlag) {

@@ -2,6 +2,7 @@
 
 #include <cmath>
 
+#include <QFileInfo>
 #include <QtCore/QMargins>
 
 #include "AbstractGraphModel.hpp"
@@ -17,52 +18,73 @@ namespace QtNodes {
 
 void DefaultNodePainter::paint(QPainter *painter, NodeGraphicsObject &ngo) const
 {
-    // TODO?
-    //AbstractNodeGeometry & geometry = ngo.nodeScene()->nodeGeometry();
-    //geometry.recomputeSizeIfFontChanged(painter->font());
+    AbstractGraphModel &model = ngo.graphModel();
+    NodeId const nodeId = ngo.nodeId();
+    QJsonDocument json = QJsonDocument::fromVariant(model.nodeData(nodeId, NodeRole::Style));
+    NodeStyle nodeStyle(json.object());
 
-    drawNodeRect(painter, ngo);
+    drawNodeRect(painter, ngo, nodeStyle);
 
-    drawCaptionRect(painter,ngo);
+    drawCaptionRect(painter, ngo, nodeStyle);
 
-    drawConnectionPoints(painter, ngo);
+    drawConnectionPoints(painter, ngo, nodeStyle);
 
-    drawFilledConnectionPoints(painter, ngo);
+    drawFilledConnectionPoints(painter, ngo, nodeStyle);
 
-    drawNodeCaption(painter, ngo);
+    drawNodeCaption(painter, ngo, nodeStyle);
 
-    drawShowTime(painter,ngo);
-    drawNodeIcon(painter,ngo);
-    drawOperationIcon(painter,ngo);
-    drawOperationResult(painter,ngo);
+    drawShowTime(painter, ngo);
+    drawNodeIcon(painter, ngo);
+    drawOperationIcon(painter, ngo);
+    drawOperationResult(painter, ngo);
     //drawEntryLabels(painter, ngo);
 
     drawResizeRect(painter, ngo);
 }
 
-void DefaultNodePainter::drawCaptionRect(QPainter *painter, NodeGraphicsObject &ngo) const 
+void DefaultNodePainter::drawCaptionRect(QPainter *painter,
+                                         NodeGraphicsObject &ngo,
+                                         const NodeStyle &nodeStyle) const
 {
     AbstractNodeGeometry &geometry = ngo.nodeScene()->nodeGeometry();
     AbstractGraphModel &model = ngo.graphModel();
     NodeId const nodeId = ngo.nodeId();
 
     QSize size = geometry.size(ngo.nodeId());
+    bool bRun = model.nodeData(nodeId, NodeRole::Running).toBool();
 
-    QRect captionRect(0+1,DEFAULT_NODE_HIGH_BEGIN+1,size.width()-2,NODE_CAPTION_HIGH-1);
-    painter->fillRect(captionRect,QBrush(QColor("#253749")));
+    QRect captionRect(0 + 1, DEFAULT_NODE_HIGH_BEGIN + 1, size.width() - 2, NODE_CAPTION_HIGH - 1);
+    QColor color = QColor("#253749");
+    if (bRun)
+        color = QColor(nodeStyle.OperationCaptionRectColor);
+    else if (ngo.nodeState().hovered())
+        color = QColor(nodeStyle.HoverCaptionRectColor);
+    else if (ngo.isSelected())
+        color = QColor(nodeStyle.SelectedCaptionRectColor);
+    else
+        color = QColor(nodeStyle.NormalCaptionRectColor);
+
+    painter->fillRect(captionRect, QBrush(color));
 
     QString strDesprition = model.nodeData(nodeId, NodeRole::Description).toString();
-    QRect descriptionRect(BORDER_SPACE,DEFAULT_NODE_HIGH_BEGIN+VERTICAL_BORDER_SPACE,100,NODE_CAPTION_HIGH-2*VERTICAL_BORDER_SPACE);
-    
+    QRect descriptionRect(BORDER_SPACE,
+                          DEFAULT_NODE_HIGH_BEGIN + VERTICAL_BORDER_SPACE,
+                          100,
+                          NODE_CAPTION_HIGH - 2 * VERTICAL_BORDER_SPACE);
+
     painter->save();
-    painter->setPen(QColor(255,255,255,204));
-    painter->drawText(descriptionRect,Qt::AlignLeft | Qt::AlignVCenter,strDesprition);
+    painter->setPen(QColor(255, 255, 255, 204));
+
+    QFontMetrics metrics(painter->font());
+    QString elidedText = metrics.elidedText(strDesprition, Qt::ElideRight, descriptionRect.width());
+    painter->drawText(descriptionRect, Qt::AlignLeft | Qt::AlignVCenter, elidedText);
 
     painter->restore();
-
 }
 
-void DefaultNodePainter::drawNodeRect(QPainter *painter, NodeGraphicsObject &ngo) const
+void DefaultNodePainter::drawNodeRect(QPainter *painter,
+                                      NodeGraphicsObject &ngo,
+                                      const NodeStyle &nodeStyle) const
 {
     AbstractGraphModel &model = ngo.graphModel();
 
@@ -71,12 +93,17 @@ void DefaultNodePainter::drawNodeRect(QPainter *painter, NodeGraphicsObject &ngo
     AbstractNodeGeometry &geometry = ngo.nodeScene()->nodeGeometry();
 
     QSize size = geometry.size(nodeId);
+    bool bRun = model.nodeData(nodeId, NodeRole::Running).toBool();
 
-    QJsonDocument json = QJsonDocument::fromVariant(model.nodeData(nodeId, NodeRole::Style));
-
-    NodeStyle nodeStyle(json.object());
-
-    auto color = ngo.isSelected() ? nodeStyle.SelectedBoundaryColor : nodeStyle.NormalBoundaryColor;
+    auto color = nodeStyle.NormalBoundaryColor;
+    if (bRun)
+        color = QColor(nodeStyle.OperationBoundaryColor);
+    else if (ngo.nodeState().hovered())
+        color = QColor(nodeStyle.HoverBoundaryColor);
+    else if (ngo.isSelected())
+        color = QColor(nodeStyle.SelectedBoundaryColor);
+    else
+        color = QColor(nodeStyle.NormalBoundaryColor);
 
     if (ngo.nodeState().hovered()) {
         QPen p(color, nodeStyle.HoveredPenWidth);
@@ -95,26 +122,28 @@ void DefaultNodePainter::drawNodeRect(QPainter *painter, NodeGraphicsObject &ngo
 
     painter->setBrush(gradient);
 
-    QRectF boundary(0, DEFAULT_NODE_HIGH_BEGIN, size.width(), size.height()- DEFAULT_NODE_HIGH_BEGIN);
+    QRectF boundary(0,
+                    DEFAULT_NODE_HIGH_BEGIN,
+                    size.width(),
+                    size.height() - DEFAULT_NODE_HIGH_BEGIN);
 
     double const radius = 0.0;
 
     painter->drawRoundedRect(boundary, radius, radius);
 }
 
-void DefaultNodePainter::drawConnectionPoints(QPainter *painter, NodeGraphicsObject &ngo) const
+void DefaultNodePainter::drawConnectionPoints(QPainter *painter,
+                                              NodeGraphicsObject &ngo,
+                                              const NodeStyle &nodeStyle) const
 {
     AbstractGraphModel &model = ngo.graphModel();
     NodeId const nodeId = ngo.nodeId();
     AbstractNodeGeometry &geometry = ngo.nodeScene()->nodeGeometry();
 
-    QJsonDocument json = QJsonDocument::fromVariant(model.nodeData(nodeId, NodeRole::Style));
-    NodeStyle nodeStyle(json.object());
-
     auto const &connectionStyle = StyleCollection::connectionStyle();
 
     float diameter = nodeStyle.ConnectionPointDiameter;
-    //auto reducedDiameter = diameter * 0.6;
+    auto reducedDiameter = diameter * 0.6;
 
     for (PortType portType : {PortType::Out, PortType::In}) {
         size_t const n = model
@@ -165,8 +194,8 @@ void DefaultNodePainter::drawConnectionPoints(QPainter *painter, NodeGraphicsObj
                 painter->setBrush(nodeStyle.ConnectionPointColor);
             }
 
-            // painter->drawEllipse(p, reducedDiameter * r, reducedDiameter * r);
-            painter->drawPixmap(p-QPoint(10,8),QPixmap(":/imgs/node_connect.png"));
+            painter->drawEllipse(p, reducedDiameter * r, reducedDiameter * r);
+            //painter->drawPixmap(p-QPoint(10,8),QPixmap(":/imgs/node_connect.svg"));
         }
     }
 
@@ -175,14 +204,13 @@ void DefaultNodePainter::drawConnectionPoints(QPainter *painter, NodeGraphicsObj
     }
 }
 
-void DefaultNodePainter::drawFilledConnectionPoints(QPainter *painter, NodeGraphicsObject &ngo) const
+void DefaultNodePainter::drawFilledConnectionPoints(QPainter *painter,
+                                                    NodeGraphicsObject &ngo,
+                                                    const NodeStyle &nodeStyle) const
 {
     AbstractGraphModel &model = ngo.graphModel();
     NodeId const nodeId = ngo.nodeId();
     AbstractNodeGeometry &geometry = ngo.nodeScene()->nodeGeometry();
-
-    QJsonDocument json = QJsonDocument::fromVariant(model.nodeData(nodeId, NodeRole::Style));
-    NodeStyle nodeStyle(json.object());
 
     auto diameter = nodeStyle.ConnectionPointDiameter;
 
@@ -219,7 +247,9 @@ void DefaultNodePainter::drawFilledConnectionPoints(QPainter *painter, NodeGraph
     }
 }
 
-void DefaultNodePainter::drawNodeCaption(QPainter *painter, NodeGraphicsObject &ngo) const
+void DefaultNodePainter::drawNodeCaption(QPainter *painter,
+                                         NodeGraphicsObject &ngo,
+                                         const NodeStyle &nodeStyle) const
 {
     AbstractGraphModel &model = ngo.graphModel();
     NodeId const nodeId = ngo.nodeId();
@@ -233,27 +263,29 @@ void DefaultNodePainter::drawNodeCaption(QPainter *painter, NodeGraphicsObject &
     QFont f = painter->font();
     f.setBold(true);
 
-    QRect captionRect(42,NODE_CAPTION_HIGH+ DEFAULT_NODE_HIGH_BEGIN+BORDER_SPACE,120,CAPTION_RECT_HIGH);//geometry.captionPosition(nodeId);
+    QRect captionRect(42,
+                      NODE_CAPTION_HIGH + DEFAULT_NODE_HIGH_BEGIN + BORDER_SPACE,
+                      120,
+                      CAPTION_RECT_HIGH); //geometry.captionPosition(nodeId);
 
-    QJsonDocument json = QJsonDocument::fromVariant(model.nodeData(nodeId, NodeRole::Style));
-    NodeStyle nodeStyle(json.object());
+    QFontMetrics metrics(f);
+    QString elidedText = metrics.elidedText(name, Qt::ElideRight, captionRect.width());
 
     painter->setFont(f);
     painter->setPen(nodeStyle.FontColor);
-    painter->drawText(captionRect,Qt::AlignLeft| Qt::AlignVCenter, name);
+    painter->drawText(captionRect, Qt::AlignLeft | Qt::AlignVCenter, elidedText);
 
     f.setBold(false);
     painter->setFont(f);
 }
 
-void DefaultNodePainter::drawEntryLabels(QPainter *painter, NodeGraphicsObject &ngo) const
+void DefaultNodePainter::drawEntryLabels(QPainter *painter,
+                                         NodeGraphicsObject &ngo,
+                                         const NodeStyle &nodeStyle) const
 {
     AbstractGraphModel &model = ngo.graphModel();
     NodeId const nodeId = ngo.nodeId();
     AbstractNodeGeometry &geometry = ngo.nodeScene()->nodeGeometry();
-
-    QJsonDocument json = QJsonDocument::fromVariant(model.nodeData(nodeId, NodeRole::Style));
-    NodeStyle nodeStyle(json.object());
 
     for (PortType portType : {PortType::Out, PortType::In}) {
         unsigned int n = model.nodeData<unsigned int>(nodeId,
@@ -299,7 +331,7 @@ void DefaultNodePainter::drawResizeRect(QPainter *painter, NodeGraphicsObject &n
     }
 }
 //showNode exec Time
-void DefaultNodePainter::drawShowTime(QPainter *painter, NodeGraphicsObject &ngo) const 
+void DefaultNodePainter::drawShowTime(QPainter *painter, NodeGraphicsObject &ngo) const
 {
     AbstractGraphModel &model = ngo.graphModel();
     NodeId const nodeId = ngo.nodeId();
@@ -309,66 +341,94 @@ void DefaultNodePainter::drawShowTime(QPainter *painter, NodeGraphicsObject &ngo
         return;
 
     QString strTime = QString("time:%1ms").arg(nTime);
-    QRect timeRect(BORDER_SPACE,NODE_CAPTION_HIGH+ DEFAULT_NODE_HIGH_BEGIN+2*BORDER_SPACE + CAPTION_RECT_HIGH,100,BORDER_SPACE);
-
-    QJsonDocument json = QJsonDocument::fromVariant(model.nodeData(nodeId, NodeRole::Style));
-    NodeStyle nodeStyle(json.object());
+    QRect timeRect(BORDER_SPACE,
+                   NODE_CAPTION_HIGH + DEFAULT_NODE_HIGH_BEGIN + 2 * BORDER_SPACE
+                       + CAPTION_RECT_HIGH,
+                   100,
+                   BORDER_SPACE);
 
     painter->save();
     painter->setPen(QColor("#A7A7A7"));
-    painter->drawText(timeRect,Qt::AlignLeft| Qt::AlignVCenter, strTime);
+    painter->drawText(timeRect, Qt::AlignLeft | Qt::AlignVCenter, strTime);
     painter->restore();
 }
 
-void DefaultNodePainter::drawNodeIcon(QPainter *painter, NodeGraphicsObject &ngo) const 
+void DefaultNodePainter::drawNodeIcon(QPainter *painter, NodeGraphicsObject &ngo) const
 {
     AbstractGraphModel &model = ngo.graphModel();
     NodeId const nodeId = ngo.nodeId();
 
     QString strIcon = model.nodeData(nodeId, NodeRole::Icon).toString();
+
+    bool bRun = model.nodeData(nodeId, NodeRole::Running).toBool();
+    int nIndex = strIcon.indexOf(".svg");
+    if (nIndex > 0) {
+        if (bRun)
+            strIcon.insert(nIndex, "_running");
+        else if (ngo.nodeState().hovered())
+            strIcon.insert(nIndex, "_hover");
+        else if (ngo.isSelected())
+            strIcon.insert(nIndex, "_selected");
+    }
+
     if (strIcon.isEmpty())
         return;
 
-    QRectF iconRect(BORDER_SPACE,NODE_CAPTION_HIGH+ DEFAULT_NODE_HIGH_BEGIN+BORDER_SPACE,16,16);
-    QRectF iconSource(0.0,0.0,16.0,16.0);
+    QRect iconRect(BORDER_SPACE, NODE_CAPTION_HIGH + DEFAULT_NODE_HIGH_BEGIN + BORDER_SPACE, 16, 16);
 
-    QPixmap pixmap = QPixmap(strIcon).scaled(QSize(16,16),Qt::KeepAspectRatio,Qt::SmoothTransformation);
-    
-    painter->drawPixmap(iconRect,pixmap,iconSource);
+    QFileInfo fileInfo(strIcon);
+    if (!fileInfo.exists())
+        strIcon = model.nodeData(nodeId, NodeRole::Icon).toString();
+
+    QPixmap pixmap = RenderingSvg(strIcon);
+
+    painter->drawPixmap(iconRect, pixmap, pixmap.rect());
 }
 
-void DefaultNodePainter::drawOperationIcon(QPainter *painter, NodeGraphicsObject &ngo) const 
+void DefaultNodePainter::drawOperationIcon(QPainter *painter, NodeGraphicsObject &ngo) const
 {
-    QRectF iconSource(0.0,0.0,16.0,16.0);
-    painter->drawPixmap(QRectF(ngo.GetStepNextRect()),QPixmap(":/imgs/step_next.png"),iconSource);
-    painter->drawPixmap(QRectF(ngo.GetStepOverRect()),QPixmap(":/imgs/step_over.png"),iconSource);
+    QPixmap stepPixmap = RenderingSvg(":/imgs/step_next.svg");
+    QPixmap overPixmap = RenderingSvg(":/imgs/step_over.svg");
+    painter->drawPixmap(ngo.GetStepNextRect(), stepPixmap, stepPixmap.rect());
+    painter->drawPixmap(ngo.GetStepOverRect(), overPixmap, overPixmap.rect());
 }
 
-void DefaultNodePainter::drawOperationResult(QPainter *painter, NodeGraphicsObject &ngo) const 
+void DefaultNodePainter::drawOperationResult(QPainter *painter, NodeGraphicsObject &ngo) const
 {
     AbstractGraphModel &model = ngo.graphModel();
     NodeId const nodeId = ngo.nodeId();
 
-    NodeResultType resultType = (NodeResultType)model.nodeData(nodeId, NodeRole::ResultValue).toInt();
+    NodeResultType resultType = (NodeResultType) model.nodeData(nodeId, NodeRole::ResultValue)
+                                    .toInt();
     QPixmap iconPixmap;
     if (resultType == NodeResultType::ResultType_NONE)
         return;
-    else if (resultType == NodeResultType::ResultType_FAILED)
-    {
-        iconPixmap = QPixmap(":/imgs/tip_failed.png");
+    else if (resultType == NodeResultType::ResultType_FAILED) {
+        iconPixmap = RenderingSvg(":/imgs/tip_failed.svg");
+    } else if (resultType == NodeResultType::ResultType_SUCCEED) {
+        iconPixmap = RenderingSvg(":/imgs/tip_success.svg");
+    } else if (resultType == NodeResultType::ResultType_UNREACHABLE) {
+        iconPixmap = RenderingSvg(":/imgs/tip_error.svg");
     }
-    else if (resultType == NodeResultType::ResultType_SUCCEED)
-    {
-        iconPixmap = QPixmap(":/imgs/tip_success.png");
-    }
-    else if (resultType == NodeResultType::ResultType_UNREACHABLE)
-    {
-        iconPixmap = QPixmap(":/imgs/tip_error.png");
-    }
-    QRectF iconSource(0.0,0.0,17.0,17.0);
-    QRectF iconTarget(0.0,0.0,17.0,17.0);
-    painter->drawPixmap(iconTarget,iconPixmap,iconSource);
+    QRect iconTarget(0, 0, 17, 17);
+    painter->drawPixmap(iconTarget, iconPixmap, iconPixmap.rect());
+}
 
+inline QPixmap DefaultNodePainter::RenderingSvg(const QString &strPath) const
+{
+    QSvgRenderer renderer(strPath);
+    if (!renderer.isValid())
+        return QPixmap();
+
+    QSize svgSize = renderer.defaultSize(); // 获取SVG默认大小
+    svgSize *= 2;                           // 将分辨率提高2倍
+    // 渲染SVG到QPixmap
+    QPixmap pixmap(svgSize);
+    pixmap.fill(Qt::transparent);
+    QPainter painter(&pixmap);
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    renderer.render(&painter);
+    return pixmap;
 }
 
 } // namespace QtNodes
